@@ -1,28 +1,20 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(gpd_ros)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS cmake_modules eigen_conversions message_generation roscpp rospy sensor_msgs std_msgs)
+find_package(catkin REQUIRED COMPONENTS cmake_modules eigen_conversions message_generation roscpp rospy sensor_msgs std_msgs gpd)
+
+find_package(OpenCV REQUIRED)
 
 # PCL
 find_package(PCL REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
+#add_definitions(${PCL_DEFINITIONS})
 
-## System dependencies are found with CMake's conventions
-find_library(GPD_LIB NAMES gpd PATHS /usr/local/lib PATH_SUFFIXES lib NO_DEFAULT_PATH)
-if (GPD_LIB)
-  message(STATUS "Library GPD found in ${GPD_LIB}")
-else()
-  message(FATAL_ERROR "Library GPD not found")
-endif()
-include_directories(${GPD_LIB_INCLUDE_DIR})
-message(STATUS "gpd_include_dir: ${GPD_LIB_INCLUDE_DIR}")
-
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
+#set(CMAKE_CXX_FLAGS "-O3 -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++14")
 
 ## Generate messages in the 'msg' folder
 add_message_files(FILES CloudIndexed.msg CloudSamples.msg CloudSources.msg GraspConfig.msg GraspConfigList.msg
@@ -45,7 +37,7 @@ generate_messages(DEPENDENCIES geometry_msgs sensor_msgs std_msgs)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 INCLUDE_DIRS include
-CATKIN_DEPENDS cmake_modules eigen_conversions geometry_msgs message_runtime roscpp sensor_msgs std_msgs
+CATKIN_DEPENDS cmake_modules eigen_conversions geometry_msgs message_runtime roscpp sensor_msgs std_msgs gpd
 DEPENDS PCL
 # CATKIN_DEPENDS cmake_modules eigen_conversions geometry_msgs message_runtime roscpp sensor_msgs std_msgs
 # DEPENDS Eigen OpenCV PCL
@@ -69,25 +61,23 @@ add_executable(${PROJECT_NAME}_detect_grasps src/gpd_ros/grasp_detection_node.cp
 add_executable(${PROJECT_NAME}_detect_grasps_server src/gpd_ros/grasp_detection_server.cpp)
 
 ## Rename C++ executable without prefix
-set_target_properties(${PROJECT_NAME}_detect_grasps PROPERTIES OUTPUT_NAME detect_grasps PREFIX "")
-set_target_properties(${PROJECT_NAME}_detect_grasps_server PROPERTIES OUTPUT_NAME detect_grasps_server PREFIX "")
+#set_target_properties(${PROJECT_NAME}_detect_grasps PROPERTIES OUTPUT_NAME detect_grasps PREFIX "")
+#set_target_properties(${PROJECT_NAME}_detect_grasps_server PROPERTIES OUTPUT_NAME detect_grasps_server PREFIX "")
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_detect_grasps
                       ${PROJECT_NAME}_grasp_messages
                       ${PROJECT_NAME}_grasp_plotter
-                      ${GPD_LIB}
                       ${PCL_LIBRARIES}
-                      ${catkin_LIBRARIES})
+                      ${catkin_LIBRARIES}
+                      ${OpenCV_LIBS})
 target_link_libraries(${PROJECT_NAME}_detect_grasps_server
                       ${PROJECT_NAME}_grasp_messages
                       ${PROJECT_NAME}_grasp_plotter
-                      ${GPD_LIB}
                       ${PCL_LIBRARIES}
-                      ${catkin_LIBRARIES})
+                      ${catkin_LIBRARIES}
+                      ${OpenCV_LIBS})
 target_link_libraries(${PROJECT_NAME}_grasp_plotter
-                      ${GPD_LIB}
                       ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_grasp_messages
-                      ${GPD_LIB}
                       ${catkin_LIBRARIES})
